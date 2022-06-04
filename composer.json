@@ -1,0 +1,17 @@
+{
+    "name": "cnpscy\/hyperf-modules",
+    "description": "Hyperf Module management",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "小丑路人",
+            "email": "2278757482@qq.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Cnpscy\\HyperfModules\\": "src"
+        }
+    }
+}
