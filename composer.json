@@ -1,6 +1,12 @@
 {
-    "name": "cnpscy\/hyperf-modules",
+    "name": "cnpscy/hyperf-modules",
     "description": "Hyperf Module management",
+    "keywords": [
+        "modules",
+        "hyperf",
+        "cnpscy",
+        "module"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -8,10 +14,25 @@
             "email": "2278757482@qq.com"
         }
     ],
-    "require": {},
+    "require": {
+        "php": ">=7.2",
+        "ext-swoole": ">=4.5",
+        "hyperf/command": "~2.2.0"
+    },
     "autoload": {
         "psr-4": {
-            "Cnpscy\\HyperfModules\\": "src"
+            "Cnpscy\\HyperfModules\\": "./src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.2-dev"
+        },
+        "hyperf": {
+            "config": "Cnpscy\\HyperfModules\\ConfigProvider"
         }
     }
 }
