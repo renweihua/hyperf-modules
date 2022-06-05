@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cnpscy\HyperfModules\Command;
 
+use Cnpscy\HyperfModules\Generators\ModuleGenerator;
 use Hyperf\Devtool\Generator\GeneratorCommand;
 use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
@@ -13,7 +14,7 @@ use Symfony\Component\Console\Input\InputArgument;
  * @Command
  */
 #[Command]
-class ModuleMakeCommand extends GeneratorCommand
+class ModuleMakeCommand extends BaseCommand
 {
     public function __construct()
     {
@@ -29,22 +30,30 @@ class ModuleMakeCommand extends GeneratorCommand
     protected function getArguments()
     {
         return [
-            ['name', InputArgument::REQUIRED, 'The names of modules will be created.'],
+            ['name', InputArgument::OPTIONAL, 'The names of modules will be created.'],
         ];
     }
 
     public function handle()
     {
-        var_dump($this->input->getArguments());
-    }
+        $name = $this->input->getArgument('name');
+        $success = true;
 
-    protected function getStub(): string
-    {
-        return $this->getConfig()['stub'] ?? __DIR__ . '/stubs/controller.stub';
-    }
+        $dir_name = $this->getConfig()['paths']['modules'] . '/' . $name;
+        if (is_dir($dir_name)){
+            return $this->error('The Module [' . $name . '] already exist！');
+        }
 
-    protected function getDefaultNamespace(): string
-    {
-        return $this->getConfig()['namespace'] ?? 'App\\Controller';
+        // 创建目录
+        mkdir($dir_name, 0755);
+
+
+        // $code = with(new ModuleGenerator($name))->generate();
+
+        // if ($code === E_ERROR) {
+        //     $success = false;
+        // }
+        //
+        // return $success ? 0 : E_ERROR;
     }
 }

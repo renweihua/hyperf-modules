@@ -10,35 +10,62 @@
      * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
      */
     return [
+        'namespace' => 'App\Modules',
+        'stubs' => [
+            'enabled' => false,
+            'path' => BASE_PATH . 'vendor/nwidart/laravel-modules/src/Commands/stubs',
+            'files' => [
+                'scaffold/config' => 'Config/config.php',
+                'composer' => 'composer.json',
+                'package' => 'package.json',
+            ],
+        ],
+        'paths' => [
+            'modules' => BASE_PATH . '/app/Modules',
+        ],
         'generator' => [
             'amqp' => [
                 'consumer' => [
-                    'namespace' => 'App\\Amqp\\Consumer',
+                    'namespace' => 'Amqp\\Consumer',
                 ],
                 'producer' => [
-                    'namespace' => 'App\\Amqp\\Producer',
+                    'namespace' => 'Amqp\\Producer',
                 ],
             ],
-            'aspect' => [
-                'namespace' => 'App\\Aspect',
-            ],
             'command' => [
-                'namespace' => 'App\\Command',
+                'namespace' => 'Command',
             ],
             'controller' => [
-                'namespace' => 'App\\Controller',
+                'namespace' => 'Http/Controller',
             ],
-            'job' => [
-                'namespace' => 'App\\Job',
+            'event' => [
+                'namespace' => 'Events'
+            ],
+            'jobs' => [
+                'namespace' => 'Jobs',
             ],
             'listener' => [
-                'namespace' => 'App\\Listener',
+                'namespace' => 'Listeners',
             ],
             'middleware' => [
-                'namespace' => 'App\\Middleware',
+                'namespace' => 'Http/Middleware',
             ],
-            'Process' => [
-                'namespace' => 'App\\Processes',
+            'model' => [
+                'namespace' => 'Modle',
             ],
+            'repository' => [
+                'namespace' => 'Repositories',
+            ],
+            'request' => [
+                'path' => 'Http/Requests'
+            ],
+
+            // 'config' => ['path' => 'Config', 'generate' => true],
+            // 'migration' => ['path' => 'Database/Migrations', 'generate' => true],
+            // 'seeder' => ['path' => 'Database/Seeders', 'generate' => true],
+            // 'factory' => ['path' => 'Database/factories', 'generate' => true],
+            // 'filter' => ['path' => 'Http/Middleware', 'generate' => true],
+            // 'provider' => ['path' => 'Providers', 'generate' => true],
+            // 'notifications' => ['path' => 'Notifications', 'generate' => false],
         ],
     ];
