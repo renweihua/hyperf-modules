@@ -15,9 +15,15 @@ abstract class BaseCommand extends HyperfCommand
      */
     public $configInterface;
 
+    /**
+     * @Inject
+     * @var \League\Flysystem\Filesystem
+     */
+    public $filesystem;
+
     public $config;
 
-    public function getConfig(): array
+    public function getConfig()
     {
         if (empty($this->config)){
             // 获取配置信息
@@ -25,7 +31,10 @@ abstract class BaseCommand extends HyperfCommand
                 $this->config = $this->configInterface->get('modules', []);
             }
         }
-        return empty($this->config) ? [] : $this->config;
+        if (empty($this->config)){
+            return $this->error('请执行[发布配置文件]：`php bin/hyperf.php vendor:publish cnpscy/hyperf-modules`');
+        }
+        return $this->config;
     }
 
     protected function getStub(): string

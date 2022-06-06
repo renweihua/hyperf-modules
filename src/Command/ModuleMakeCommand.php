@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Cnpscy\HyperfModules\Command;
 
+use Cnpscy\HyperfModules\Filesystem;
 use Cnpscy\HyperfModules\Generators\ModuleGenerator;
-use Hyperf\Devtool\Generator\GeneratorCommand;
-use Hyperf\Command\Command as HyperfCommand;
+use Cnpscy\HyperfModules\Module;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Filesystem\FilesystemFactory;
+use Hyperf\Utils\ApplicationContext;
 use Symfony\Component\Console\Input\InputArgument;
 
 /**
@@ -30,8 +32,25 @@ class ModuleMakeCommand extends BaseCommand
     protected function getArguments()
     {
         return [
-            ['name', InputArgument::OPTIONAL, 'The names of modules will be created.'],
+            ['name', InputArgument::REQUIRED, 'The names of modules will be created.'],
+            ['force', InputArgument::OPTIONAL, 'The names of modules will be created.'],
         ];
+    }
+
+    /**
+     * Finds an entry of the container by its identifier and returns it.
+     *
+     * @param  null|mixed  $id
+     *
+     * @return mixed|\Psr\Container\ContainerInterface
+     */
+    function di($id = null)
+    {
+        $container = ApplicationContext::getContainer();
+        if ( $id ) {
+            return $container->get($id);
+        }
+        return $container;
     }
 
     public function handle()
@@ -39,16 +58,15 @@ class ModuleMakeCommand extends BaseCommand
         $name = $this->input->getArgument('name');
         $success = true;
 
-        $dir_name = $this->getConfig()['paths']['modules'] . '/' . $name;
-        if (is_dir($dir_name)){
-            return $this->error('The Module [' . $name . '] already exist！');
-        }
+        $config = $this->getConfig();
+        if (!$config) return;
 
-        // 创建目录
-        mkdir($dir_name, 0755);
-
-
-        // $code = with(new ModuleGenerator($name))->generate();
+        $moduleGenerator = new ModuleGenerator($name, new Filesystem, $config);
+        $code = with($moduleGenerator)
+            ->setModule(new Module($moduleGenerator->getName(), $moduleGenerator->getModulePath()))
+            ->setConsole($this)
+            ->setForce($this->input->hasOption('force') ? $this->input->getOption('force') : false)
+            ->generate();
 
         // if ($code === E_ERROR) {
         //     $success = false;

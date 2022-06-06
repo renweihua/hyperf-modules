@@ -2,14 +2,14 @@
 
 namespace Cnpscy\HyperfModules\Generators;
 
+use Cnpscy\HyperfModules\Support\Config\GenerateConfigReader;
+use Hyperf\Utils\Arr;
 use Illuminate\Config\Repository as Config;
 use Illuminate\Console\Command as Console;
-use Illuminate\Filesystem\Filesystem;
+use Cnpscy\HyperfModules\Filesystem;
 use Illuminate\Support\Str;
 use Nwidart\Modules\Contracts\ActivatorInterface;
 use Nwidart\Modules\FileRepository;
-use Nwidart\Modules\Support\Config\GenerateConfigReader;
-use Nwidart\Modules\Support\Stub;
 
 class ModuleGenerator extends Generator
 {
@@ -41,12 +41,6 @@ class ModuleGenerator extends Generator
      */
     protected $console;
 
-    /**
-     * The activator instance
-     *
-     * @var ActivatorInterface
-     */
-    protected $activator;
 
     /**
      * The module instance.
@@ -63,20 +57,6 @@ class ModuleGenerator extends Generator
     protected $force = false;
 
     /**
-     * set default module type.
-     *
-     * @var string
-     */
-    protected $type = 'web';
-
-    /**
-     * Enables the module.
-     *
-     * @var bool
-     */
-    protected $isActive = false;
-
-    /**
      * The constructor.
      * @param $name
      * @param FileRepository $module
@@ -86,18 +66,14 @@ class ModuleGenerator extends Generator
      */
     public function __construct(
         $name,
-        FileRepository $module = null,
-        Config $config = null,
         Filesystem $filesystem = null,
-        Console $console = null,
-        ActivatorInterface $activator = null
+        $config = [],
+        Console $console = null
     ) {
         $this->name = $name;
         $this->config = $config;
         $this->filesystem = $filesystem;
         $this->console = $console;
-        $this->module = $module;
-        $this->activator = $activator;
     }
 
     /**
@@ -135,7 +111,15 @@ class ModuleGenerator extends Generator
      */
     public function getName()
     {
-        return ($this->name);
+        return $this->convert_underline(str_replace(['-'], ['_'], $this->name));
+    }
+
+    // 下划线的字符串转骆驼峰
+    function convert_underline($str, $ucfirst = true)
+    {
+        $str = ucwords(str_replace('_', ' ', $str));
+        $str = str_replace(' ', '', lcfirst($str));
+        return $ucfirst ? ucfirst($str) : $str;
     }
 
     /**
@@ -255,7 +239,7 @@ class ModuleGenerator extends Generator
      */
     public function getFolders()
     {
-        return $this->module->config('paths.generator');
+        return $this->getKeyConfig('paths.generator');
     }
 
     /**
@@ -265,7 +249,7 @@ class ModuleGenerator extends Generator
      */
     public function getFiles()
     {
-        return $this->module->config('stubs.files');
+        return $this->getKeyConfig('stubs.files');
     }
 
     /**
@@ -289,17 +273,18 @@ class ModuleGenerator extends Generator
     {
         $name = $this->getName();
 
-        if ($this->module->has($name)) {
-            if ($this->force) {
-                $this->module->delete($name);
-            } else {
-                $this->console->error("Module [{$name}] already exist!");
-
-                return E_ERROR;
-            }
+        $module_directory = $this->getModuleDirectory();
+        // 检测是否存在目录
+        if ($this->filesystem->isDirectory($module_directory)) {
+            $this->console->error("Module [{$name}] already exist!");
+            return E_ERROR;
         }
+        // 创建模块目录
+        $this->filesystem->makeDirectory($module_directory, 0755, true);
+
 
         $this->generateFolders();
+        exit;
 
         $this->generateModuleJsonFile();
 
@@ -311,8 +296,6 @@ class ModuleGenerator extends Generator
         if ($this->type === 'plain') {
             $this->cleanModuleJsonFile();
         }
-
-        $this->activator->setActiveByName($name, $this->isActive);
 
         $this->console->info("Module [{$name}] created successfully.");
 
@@ -331,10 +314,9 @@ class ModuleGenerator extends Generator
                 continue;
             }
 
-            $path = $this->module->getModulePath($this->getName()) . '/' . $folder->getPath();
-
-            $this->filesystem->makeDirectory($path, 0755, true);
-            if (config('modules.stubs.gitkeep')) {
+            $path = $this->getModulePath($this->name) . '/' . $folder->getPath();
+            $this->filesystem->makeDirectory($path);
+            if ($this->getKeyConfig('modules.stubs.gitkeep')) {
                 $this->generateGitKeep($path);
             }
         }
@@ -356,7 +338,7 @@ class ModuleGenerator extends Generator
     public function generateFiles()
     {
         foreach ($this->getFiles() as $stub => $file) {
-            $path = $this->module->getModulePath($this->getName()) . $file;
+            $path = $this->getModulePath() . $file;
 
             if (!$this->filesystem->isDirectory($dir = dirname($path))) {
                 $this->filesystem->makeDirectory($dir, 0775, true);
@@ -422,7 +404,7 @@ class ModuleGenerator extends Generator
      */
     public function getReplacements()
     {
-        return $this->module->config('stubs.replacements');
+        return $this->getKeyConfig('stubs.replacements');
     }
 
     /**
@@ -434,7 +416,7 @@ class ModuleGenerator extends Generator
      */
     protected function getReplacement($stub)
     {
-        $replacements = $this->module->config('stubs.replacements');
+        $replacements = $this->getKeyConfig('stubs.replacements');
 
         if (!isset($replacements[$stub])) {
             return [];
@@ -465,7 +447,7 @@ class ModuleGenerator extends Generator
      */
     private function generateModuleJsonFile()
     {
-        $path = $this->module->getModulePath($this->getName()) . 'module.json';
+        $path = $this->getModulePath() . 'module.json';
 
         if (!$this->filesystem->isDirectory($dir = dirname($path))) {
             $this->filesystem->makeDirectory($dir, 0775, true);
@@ -482,7 +464,7 @@ class ModuleGenerator extends Generator
      */
     private function cleanModuleJsonFile()
     {
-        $path = $this->module->getModulePath($this->getName()) . 'module.json';
+        $path = $this->getModulePath() . 'module.json';
 
         $content = $this->filesystem->get($path);
         $namespace = $this->getModuleNamespaceReplacement();
@@ -522,7 +504,7 @@ class ModuleGenerator extends Generator
      */
     protected function getVendorReplacement()
     {
-        return $this->module->config('composer.vendor');
+        return $this->getKeyConfig('composer.vendor');
     }
 
     /**
@@ -532,7 +514,7 @@ class ModuleGenerator extends Generator
      */
     protected function getModuleNamespaceReplacement()
     {
-        return str_replace('\\', '\\\\', $this->module->config('namespace'));
+        return str_replace('\\', '\\\\', $this->getKeyConfig('namespace'));
     }
 
     /**
@@ -542,7 +524,7 @@ class ModuleGenerator extends Generator
      */
     protected function getAuthorNameReplacement()
     {
-        return $this->module->config('composer.author.name');
+        return $this->getKeyConfig('composer.author.name');
     }
 
     /**
@@ -552,11 +534,26 @@ class ModuleGenerator extends Generator
      */
     protected function getAuthorEmailReplacement()
     {
-        return $this->module->config('composer.author.email');
+        return $this->getKeyConfig('composer.author.email');
     }
 
     protected function getProviderNamespaceReplacement(): string
     {
         return str_replace('\\', '\\\\', GenerateConfigReader::read('provider')->getNamespace());
+    }
+
+    public function getKeyConfig($key)
+    {
+        return Arr::get($this->getConfig(), $key);
+    }
+
+    public function getModuleDirectory()
+    {
+        return $this->getModulePath($this->name);
+    }
+
+    public function getModulePath($name = '')
+    {
+        return $this->getKeyConfig('paths.modules') . (empty($name) ? '' : ('/' . $name));
     }
 }
