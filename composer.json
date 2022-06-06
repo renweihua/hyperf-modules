@@ -17,8 +17,7 @@
     "require": {
         "php": ">=7.2",
         "ext-swoole": ">=4.5",
-        "hyperf/command": "~2.2.0",
-        "hyperf/filesystem": "^2.2"
+        "hyperf/command": "~2.2.0"
     },
     "autoload": {
         "psr-4": {
