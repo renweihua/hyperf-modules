@@ -4,20 +4,27 @@ declare(strict_types=1);
 
 namespace Cnpscy\HyperfModules\Command;
 
+use Cnpscy\HyperfModules\Filesystem;
+use Cnpscy\HyperfModules\Generators\ModuleGenerator;
+use Cnpscy\HyperfModules\Traits\ConfigTrait;
+use Hyperf\Command\Command;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Utils\ApplicationContext;
 use Hyperf\Utils\Arr;
 use Hyperf\Utils\CodeGen\Project;
 use Hyperf\Utils\Str;
 use Psr\Container\ContainerInterface;
-use Symfony\Component\Console\Command\Command;
+// use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Hyperf\Di\Annotation\Inject;
 
 abstract class GeneratorCommand extends Command
 {
+    use ConfigTrait;
+
     /**
      * @var InputInterface
      */
@@ -27,6 +34,23 @@ abstract class GeneratorCommand extends Command
      * @var OutputInterface
      */
     protected $output;
+
+    /**
+     * @Inject
+     * @var \League\Flysystem\Filesystem
+     */
+    public $filesystem;
+
+
+    protected $moduleGenerator;
+
+    public function __construct(string $name = null)
+    {
+        parent::__construct($name);
+
+        $config = $this->getConfig();
+        if (!$config) return;
+    }
 
     public function configure()
     {
@@ -48,6 +72,13 @@ abstract class GeneratorCommand extends Command
     {
         $this->input = $input;
         $this->output = $output;
+
+        if (method_exists($this, 'handle')){
+            var_dump("method_exists(, 'handle')");
+            $this->handle();
+            return 1;
+        }
+
 
         $name = $this->qualifyClass($this->getNameInput());
         var_dump($name);
@@ -305,4 +336,16 @@ abstract class GeneratorCommand extends Command
                 break;
         }
     }
+
+    // protected function info($msg)
+    // {
+    //     $this->output->writeln(sprintf('<info>%s</info>', $msg));
+    //     return 0;
+    // }
+    //
+    // protected function error($msg)
+    // {
+    //     $this->output->writeln(sprintf('<fg=red>%s</>', $msg));
+    //     return 0;
+    // }
 }

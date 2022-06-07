@@ -7,11 +7,14 @@ namespace Cnpscy\HyperfModules\Command;
 use Cnpscy\HyperfModules\Filesystem;
 use Cnpscy\HyperfModules\Generators\ModuleGenerator;
 use Cnpscy\HyperfModules\Module;
+use Cnpscy\HyperfModules\Traits\ConfigTrait;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Utils\ApplicationContext;
 use Symfony\Component\Console\Input\InputArgument;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Command\Command as HyperfCommand;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @Command
@@ -19,18 +22,7 @@ use Hyperf\Command\Command as HyperfCommand;
 #[Command]
 class ModuleMakeCommand extends HyperfCommand
 {
-    /**
-     * @Inject
-     * @var \Hyperf\Contract\ConfigInterface
-     */
-    public $configInterface;
-
-    /**
-     * @Inject
-     * @var \League\Flysystem\Filesystem
-     */
-    public $filesystem;
-
+    use ConfigTrait;
 
     public function __construct()
     {
@@ -46,38 +38,24 @@ class ModuleMakeCommand extends HyperfCommand
     protected function getArguments()
     {
         return [
-            ['name', InputArgument::REQUIRED, 'The names of modules will be created.'],
+            ['module', InputArgument::REQUIRED, 'The names of modules will be created.'],
             ['force', InputArgument::OPTIONAL, 'The names of modules will be created.'],
         ];
     }
 
-    public $config;
-
-    public function getConfig()
-    {
-        if (empty($this->config)){
-            // 获取配置信息
-            if ($this->configInterface){
-                $this->config = $this->configInterface->get('modules', []);
-            }
-        }
-        if (empty($this->config)){
-            return $this->error('请执行[发布配置文件]：`php bin/hyperf.php vendor:publish cnpscy/hyperf-modules`');
-        }
-        return $this->config;
-    }
-
     public function handle()
     {
-        $name = $this->input->getArgument('name');
+        $name = $this->input->getArgument('module');
         $success = true;
 
-        $config = $this->getConfig();
-        if (!$config) return;
+        $this->info(11111);
 
-        $moduleGenerator = new ModuleGenerator($name, new Filesystem, $config);
-        $code = with($moduleGenerator)
-            ->setModule(new Module($moduleGenerator->getName(), $moduleGenerator->getModulePath()))
+
+        $module_name = $this->input->getArgument('module');
+        $this->moduleGenerator = new ModuleGenerator($module_name, new Filesystem, $this->getConfig());
+
+        $code = with($this->moduleGenerator)
+            ->setModule(new Module($this->moduleGenerator->getName(), $this->moduleGenerator->getModulePath()))
             ->setConsole($this)
             ->setForce($this->input->hasOption('force') ? $this->input->getOption('force') : false)
             ->generate();
@@ -87,5 +65,16 @@ class ModuleMakeCommand extends HyperfCommand
         }
 
         return $success ? 0 : E_ERROR;
+    }
+
+    protected function getStub(): string
+    {
+        return '';
+    }
+
+    protected function getDefaultNamespace(): string
+    {
+        $default_namespace = $this->getConfig()['namespace'] ?? 'App\\Controller';
+        return $default_namespace . '\\' . $this->moduleGenerator->getModulePath();
     }
 }

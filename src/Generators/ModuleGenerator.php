@@ -11,8 +11,9 @@ use Illuminate\Console\Command as Console;
 use Cnpscy\HyperfModules\Filesystem;
 use Nwidart\Modules\Contracts\ActivatorInterface;
 use Nwidart\Modules\FileRepository;
+use Symfony\Component\Console\Command\Command;
 
-class ModuleGenerator extends Generator
+class ModuleGenerator extends Command
 {
     /**
      * The module name will created.
@@ -277,7 +278,7 @@ class ModuleGenerator extends Generator
         $module_directory = $this->getModulePath();
         // 检测是否存在目录
         if ($this->filesystem->isDirectory($module_directory)) {
-            $this->console->error("Module [{$name}] already exist!");
+            $this->error("Module [{$name}] already exist!");
             return E_ERROR;
         }
         // 创建模块目录
@@ -292,7 +293,7 @@ class ModuleGenerator extends Generator
 
         $this->cleanModuleJsonFile();
 
-        $this->console->info("Module [{$name}] created successfully.");
+        $this->info("Module [{$name}] created successfully.");
 
         return 0;
     }
@@ -346,7 +347,7 @@ class ModuleGenerator extends Generator
 
             $this->filesystem->put($path, $this->getStubContents($stub));
 
-            $this->console->info("Created : {$path}");
+            $this->info("Created : {$path}");
         }
     }
 
@@ -444,7 +445,7 @@ class ModuleGenerator extends Generator
 
         $this->filesystem->put($path, $this->getStubContents('json'));
 
-        $this->console->info("Created : {$path}");
+        $this->info("Created : {$path}");
     }
 
     /**
@@ -540,5 +541,17 @@ class ModuleGenerator extends Generator
     {
         $name = $this->getName();
         return $this->getKeyConfig('paths.modules') . (empty($name) ? '' : ('/' . $name)) . '/';
+    }
+
+    protected function info($msg)
+    {
+        $this->console->info(sprintf('<info>%s</info>', $msg));
+        return 0;
+    }
+
+    protected function error($msg)
+    {
+        $this->console->error(sprintf('<fg=red>%s</>', $msg));
+        return 0;
     }
 }
