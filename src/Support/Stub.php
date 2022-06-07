@@ -103,7 +103,6 @@ class Stub
      */
     public function getContents()
     {
-        var_dump($this->getPath());
         $contents = file_get_contents($this->getPath());
 
         foreach ($this->replaces as $search => $replace) {

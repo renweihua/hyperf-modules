@@ -10,13 +10,28 @@ use Cnpscy\HyperfModules\Module;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Utils\ApplicationContext;
 use Symfony\Component\Console\Input\InputArgument;
+use Hyperf\Di\Annotation\Inject;
+use Hyperf\Command\Command as HyperfCommand;
 
 /**
  * @Command
  */
 #[Command]
-class ModuleMakeCommand extends BaseCommand
+class ModuleMakeCommand extends HyperfCommand
 {
+    /**
+     * @Inject
+     * @var \Hyperf\Contract\ConfigInterface
+     */
+    public $configInterface;
+
+    /**
+     * @Inject
+     * @var \League\Flysystem\Filesystem
+     */
+    public $filesystem;
+
+
     public function __construct()
     {
         parent::__construct('module:make');
@@ -36,20 +51,20 @@ class ModuleMakeCommand extends BaseCommand
         ];
     }
 
-    /**
-     * Finds an entry of the container by its identifier and returns it.
-     *
-     * @param  null|mixed  $id
-     *
-     * @return mixed|\Psr\Container\ContainerInterface
-     */
-    function di($id = null)
+    public $config;
+
+    public function getConfig()
     {
-        $container = ApplicationContext::getContainer();
-        if ( $id ) {
-            return $container->get($id);
+        if (empty($this->config)){
+            // 获取配置信息
+            if ($this->configInterface){
+                $this->config = $this->configInterface->get('modules', []);
+            }
         }
-        return $container;
+        if (empty($this->config)){
+            return $this->error('请执行[发布配置文件]：`php bin/hyperf.php vendor:publish cnpscy/hyperf-modules`');
+        }
+        return $this->config;
     }
 
     public function handle()
@@ -67,10 +82,10 @@ class ModuleMakeCommand extends BaseCommand
             ->setForce($this->input->hasOption('force') ? $this->input->getOption('force') : false)
             ->generate();
 
-        // if ($code === E_ERROR) {
-        //     $success = false;
-        // }
-        //
-        // return $success ? 0 : E_ERROR;
+        if ($code === E_ERROR) {
+            $success = false;
+        }
+
+        return $success ? 0 : E_ERROR;
     }
 }
