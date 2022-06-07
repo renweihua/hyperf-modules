@@ -3,11 +3,12 @@
 namespace Cnpscy\HyperfModules\Generators;
 
 use Cnpscy\HyperfModules\Support\Config\GenerateConfigReader;
+use Cnpscy\HyperfModules\Support\Stub;
 use Hyperf\Utils\Arr;
+use Hyperf\Utils\Str;
 use Illuminate\Config\Repository as Config;
 use Illuminate\Console\Command as Console;
 use Cnpscy\HyperfModules\Filesystem;
-use Illuminate\Support\Str;
 use Nwidart\Modules\Contracts\ActivatorInterface;
 use Nwidart\Modules\FileRepository;
 
@@ -273,7 +274,7 @@ class ModuleGenerator extends Generator
     {
         $name = $this->getName();
 
-        $module_directory = $this->getModuleDirectory();
+        $module_directory = $this->getModulePath();
         // 检测是否存在目录
         if ($this->filesystem->isDirectory($module_directory)) {
             $this->console->error("Module [{$name}] already exist!");
@@ -282,20 +283,14 @@ class ModuleGenerator extends Generator
         // 创建模块目录
         $this->filesystem->makeDirectory($module_directory, 0755, true);
 
-
         $this->generateFolders();
-        exit;
 
         $this->generateModuleJsonFile();
 
-        if ($this->type !== 'plain') {
-            $this->generateFiles();
-            $this->generateResources();
-        }
+        $this->generateFiles();
+        $this->generateResources();
 
-        if ($this->type === 'plain') {
-            $this->cleanModuleJsonFile();
-        }
+        $this->cleanModuleJsonFile();
 
         $this->console->info("Module [{$name}] created successfully.");
 
@@ -309,15 +304,20 @@ class ModuleGenerator extends Generator
     {
         foreach ($this->getFolders() as $key => $folder) {
             $folder = GenerateConfigReader::read($key);
-
             if ($folder->generate() === false) {
                 continue;
             }
 
-            $path = $this->getModulePath($this->name) . '/' . $folder->getPath();
-            $this->filesystem->makeDirectory($path);
-            if ($this->getKeyConfig('modules.stubs.gitkeep')) {
-                $this->generateGitKeep($path);
+            // 兼容多层级的目录创建
+            $paths = explode('/', $folder->getPath());
+            $new_path = $module_path = $this->getModulePath($this->name);
+            foreach ($paths as $path){
+                $new_path .= $path . '/';
+                $this->filesystem->makeDirectory($new_path);
+            }
+
+            if ($this->getKeyConfig('stubs.gitkeep')) {
+                $this->generateGitKeep($module_path . $folder->getPath());
             }
         }
     }
@@ -363,19 +363,8 @@ class ModuleGenerator extends Generator
             ]);
         }
 
-        if (GenerateConfigReader::read('provider')->generate() === true) {
-            $this->console->call('module:make-provider', [
-                'name' => $this->getName() . 'ServiceProvider',
-                'module' => $this->getName(),
-                '--master' => true,
-            ]);
-            $this->console->call('module:route-provider', [
-                'module' => $this->getName(),
-            ]);
-        }
-
         if (GenerateConfigReader::read('controller')->generate() === true) {
-            $options = $this->type=='api'?['--api'=>true]:[];
+            $options = ['--api'=>true];
             $this->console->call('module:make-controller', [
                 'controller' => $this->getName() . 'Controller',
                 'module' => $this->getName(),
@@ -547,13 +536,9 @@ class ModuleGenerator extends Generator
         return Arr::get($this->getConfig(), $key);
     }
 
-    public function getModuleDirectory()
-    {
-        return $this->getModulePath($this->name);
-    }
-
     public function getModulePath($name = '')
     {
-        return $this->getKeyConfig('paths.modules') . (empty($name) ? '' : ('/' . $name));
+        $name = $this->getName();
+        return $this->getKeyConfig('paths.modules') . (empty($name) ? '' : ('/' . $name)) . '/';
     }
 }

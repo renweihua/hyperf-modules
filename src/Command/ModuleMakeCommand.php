@@ -8,7 +8,6 @@ use Cnpscy\HyperfModules\Filesystem;
 use Cnpscy\HyperfModules\Generators\ModuleGenerator;
 use Cnpscy\HyperfModules\Module;
 use Hyperf\Command\Annotation\Command;
-use Hyperf\Filesystem\FilesystemFactory;
 use Hyperf\Utils\ApplicationContext;
 use Symfony\Component\Console\Input\InputArgument;
 
