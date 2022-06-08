@@ -14,7 +14,7 @@ trait ConfigTrait
 
     public $config;
 
-    public function getConfig()
+    protected function getConfig(): array
     {
         if (empty($this->config)){
             // 获取配置信息

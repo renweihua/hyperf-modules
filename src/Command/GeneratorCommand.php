@@ -73,6 +73,7 @@ abstract class GeneratorCommand extends Command
         $this->input = $input;
         $this->output = $output;
 
+        var_dump(11111);
         if (method_exists($this, 'handle')){
             var_dump("method_exists(, 'handle')");
             $this->handle();

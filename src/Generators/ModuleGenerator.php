@@ -315,6 +315,7 @@ class ModuleGenerator extends Command
             foreach ($paths as $path){
                 $new_path .= $path . '/';
                 $this->filesystem->makeDirectory($new_path);
+                // $this->info("Created : {$new_path}");
             }
 
             if ($this->getKeyConfig('stubs.gitkeep')) {
@@ -356,21 +357,21 @@ class ModuleGenerator extends Command
      */
     public function generateResources()
     {
-        if (GenerateConfigReader::read('seeder')->generate() === true) {
-            $this->console->call('module:make-seed', [
-                'name' => $this->getName(),
-                'module' => $this->getName(),
-                '--master' => true,
-            ]);
-        }
-
-        if (GenerateConfigReader::read('controller')->generate() === true) {
-            $options = ['--api'=>true];
-            $this->console->call('module:make-controller', [
-                'controller' => $this->getName() . 'Controller',
-                'module' => $this->getName(),
-            ]+$options);
-        }
+        // if (GenerateConfigReader::read('seeder')->generate() === true) {
+        //     $this->console->call('module:make-seed', [
+        //         'name' => $this->getName(),
+        //         'module' => $this->getName(),
+        //         '--master' => true,
+        //     ]);
+        // }
+        //
+        // if (GenerateConfigReader::read('controller')->generate() === true) {
+        //     $options = ['--api'=>true];
+        //     $this->console->call('module:make-controller', [
+        //         'controller' => $this->getName() . 'Controller',
+        //         'module' => $this->getName(),
+        //     ]+$options);
+        // }
     }
 
     /**

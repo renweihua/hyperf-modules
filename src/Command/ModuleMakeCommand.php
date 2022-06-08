@@ -45,11 +45,7 @@ class ModuleMakeCommand extends HyperfCommand
 
     public function handle()
     {
-        $name = $this->input->getArgument('module');
         $success = true;
-
-        $this->info(11111);
-
 
         $module_name = $this->input->getArgument('module');
         $this->moduleGenerator = new ModuleGenerator($module_name, new Filesystem, $this->getConfig());

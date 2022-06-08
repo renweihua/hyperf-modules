@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Cnpscy\HyperfModules\Command;
 
+use Cnpscy\HyperfModules\Filesystem;
+use Cnpscy\HyperfModules\Generators\ModuleGenerator;
+use Cnpscy\HyperfModules\Traits\ConfigTrait;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Utils\CodeGen\Project;
 use Symfony\Component\Console\Input\InputArgument;
@@ -12,8 +15,10 @@ use Symfony\Component\Console\Input\InputArgument;
  * @Command
  */
 #[Command]
-class ControllerCommand extends GeneratorCommand
+class ControllerCommand extends \Hyperf\Devtool\Generator\GeneratorCommand
 {
+    use ConfigTrait;
+
     public function __construct()
     {
         parent::__construct('module:make-controller');
@@ -40,7 +45,17 @@ class ControllerCommand extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
+
+        $module_name = $this->input->getArgument('module');
+        $moduleGenerator = new ModuleGenerator($module_name, null, $this->getConfig());
+        var_dump($moduleGenerator->getModulePath());
+        var_dump($this->getConfig());
+        'paths.generator.controller.namespace'
+        exit;
+
+        var_dump($this->getConfig());
         $default_namespace = $this->getConfig()['namespace'] ?? 'App\\Controller';
+        var_dump($default_namespace);
         return $default_namespace . '\\';
     }
 }
