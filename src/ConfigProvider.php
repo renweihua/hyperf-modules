@@ -27,7 +27,7 @@ class ConfigProvider
             ],
             'commands' => [
                 Command\ModuleMakeCommand::class,
-                Command\ControllerCommand::class,
+                // Command\ControllerCommand::class,
             ],
             'publish' => [
                 [
