@@ -45,13 +45,13 @@ class ControllerCommand extends \Hyperf\Devtool\Generator\GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-
+        return 'App\\Controller';
         $module_name = $this->input->getArgument('module');
         $moduleGenerator = new ModuleGenerator($module_name, null, $this->getConfig());
-        var_dump($moduleGenerator->getModulePath());
-        var_dump($this->getConfig());
-        'paths.generator.controller.namespace'
-        exit;
+        // var_dump($moduleGenerator->getModulePath());
+        // var_dump($this->getConfig());
+        // 'paths.generator.controller.namespace'
+        // exit;
 
         var_dump($this->getConfig());
         $default_namespace = $this->getConfig()['namespace'] ?? 'App\\Controller';
