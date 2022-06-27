@@ -54,6 +54,7 @@
                 'event' => ['path' => 'Events', 'generate' => true],
                 'listener' => ['path' => 'Listeners', 'generate' => false],
                 'jobs' => ['path' => 'Jobs', 'generate' => false],
+                'route' => ['path' => 'Routes', 'generate' => false],
             ],
         ],
         'generator' => [
