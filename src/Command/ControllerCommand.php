@@ -11,10 +11,6 @@ use Hyperf\Command\Annotation\Command;
 use Hyperf\Utils\CodeGen\Project;
 use Symfony\Component\Console\Input\InputArgument;
 
-/**
- * @Command
- */
-#[Command]
 class ControllerCommand extends \Hyperf\Devtool\Generator\GeneratorCommand
 {
     use ConfigTrait;
